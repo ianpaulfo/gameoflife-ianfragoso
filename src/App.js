@@ -16,7 +16,6 @@ class App extends React.Component {
       <div className="App">
         <h1>Conway's Game of Life</h1>
         <Grid></Grid>
-        <h2>Generations: {this.state.generations}</h2>
       </div>
       )
     }
