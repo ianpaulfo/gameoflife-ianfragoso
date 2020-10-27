@@ -2,6 +2,7 @@ import React, { useCallback, useState, useRef} from 'react';
 import './App.css';
 import produce from 'immer';
 
+
 const numRows = 34;
 const numColumns = 34;
 
@@ -28,6 +29,7 @@ const generateEmptyGrid = () => {
 
 var generation = 0
 
+
 const Grid = () => {
   const [grid, setGrid] = useState(() => {
       return generateEmptyGrid();
@@ -38,22 +40,28 @@ const Grid = () => {
     generation += 1;
   }, [])
 
+  
 
   const [running, setRunning] = useState(false);
 
 //keeps state of runningRef up to date with running for callback
   const runningRef = useRef(running);
   runningRef.current = running;
-  
-// to use Recursion use Callback function passing an empty array as second param to ensure its only called once
+ 
+// Algorithm to generate new generations of cells using rules provided:
+// Recursion method is used as a callback function 
+// BigO notation -> Log(n)
   const runSimulation = useCallback(() => {
+
+    
     //base case
     updateGeneration(generation);
     if (!runningRef.current) {
         return;
-    }
-    setGrid((g) => {
-        return produce(g, gridCopy => {
+    } 
+    setGrid((currentGrid) => {
+        //double-buffer function to measure every cell in that grid against Conway’s rules, create a new Grid accordingly, then replace the old Grid with the new one.
+        return produce(currentGrid, gridCopy => {
             for (let i = 0; i < numRows; i++) {
                 for (let j = 0; j < numColumns; j++) {
                     let neighbors = 0;
@@ -62,13 +70,13 @@ const Grid = () => {
                         const newI = i + x;
                         const newJ = j + y;
                         if (newI >= 0 && newI < numRows && newJ >= 0 && newJ < numColumns) {
-                          neighbors += g[newI][newJ];
+                          neighbors += currentGrid[newI][newJ];
                         }
                     });
-                    //implement rules for game of life
+                    //based on rules for game of life, cell life is determined by checking number of neighbor requirements
                     if (neighbors < 2 || neighbors > 3) {
                         gridCopy[i][j] = 0;
-                    } else if (g[i][j] === 0 && neighbors === 3) {
+                    } else if (currentGrid[i][j] === 0 && neighbors === 3) {
                         gridCopy[i][j] = 1;
                     }
                 }
@@ -76,6 +84,43 @@ const Grid = () => {
         });
     });
     setTimeout(runSimulation, 100);
+    console.log("Simulation Generation:", generation)
+  }, []);
+
+  const runSingleSimulation = useCallback(() => {
+
+    
+    //base case
+    updateGeneration(generation);
+    if (!runningRef.current) {
+        return;
+    } 
+    setGrid((currentGrid) => {
+        //double-buffer function to measure every cell in that grid against Conway’s rules, create a new Grid accordingly, then replace the old Grid with the new one.
+        return produce(currentGrid, gridCopy => {
+            for (let i = 0; i < numRows; i++) {
+                for (let j = 0; j < numColumns; j++) {
+                    let neighbors = 0;
+                    //count the number of live neighbors
+                    operations.forEach(([x, y]) => {
+                        const newI = i + x;
+                        const newJ = j + y;
+                        if (newI >= 0 && newI < numRows && newJ >= 0 && newJ < numColumns) {
+                          neighbors += currentGrid[newI][newJ];
+                        }
+                    });
+                    //based on rules for game of life, cell life is determined by checking number of neighbor requirements
+                    if (neighbors < 2 || neighbors > 3) {
+                        gridCopy[i][j] = 0;
+                    } else if (currentGrid[i][j] === 0 && neighbors === 3) {
+                        gridCopy[i][j] = 1;
+                    }
+                }
+            }
+        });
+    });
+    setTimeout(100);
+    console.log("Single Generation -> currently:", generation)
   }, []);
 
   return (
@@ -90,17 +135,48 @@ const Grid = () => {
             }
             }}
         >
-            {running ? "stop" : "start"}
+            {running ? "Pause" : "Start"}
+        </button>
+        <button
+            onClick={() => {
+                console.log("Single generation button pressed")
+                if (running) {
+                    setRunning(!running)
+                    return
+                }
+                runningRef.current = true;
+                runSingleSimulation()
+            }
+            }
+        >
+            Single Generation
         </button>
         <button
             onClick={() => {
             console.log("clear button pressed")
-
+            generation = 0
             setGrid(generateEmptyGrid());
             }}
         >
-            clear
+            Clear
         </button>
+        <button
+            onClick={() => {
+                const rows = [];
+                for (let i = 0; i < numRows; i++) {
+                rows.push(Array.from(Array(numColumns), () => Math.random() > .85 ? 1 : 0));
+    }
+  
+                setGrid(rows);
+            }}
+        >
+            Random Seed
+        </button>
+
+        {/* <button onClick={() => setSpeed(speed * 10)}>
+            Speed x10
+         </button> */}
+
         <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${numColumns}, 21px)`
@@ -120,7 +196,7 @@ const Grid = () => {
                     width: 20, 
                     height: 20, 
                     backgroundColor: grid[i][j] ? "green": undefined,
-                    border: "solid 1px black"
+                    border: "solid 2px black"
                     }} 
                 />
                 ))
