@@ -1,17 +1,18 @@
 .App {
   text-align: center;
+  background-image: url(images/halloween-background-4338707_1280.jpg);
+  background-position: left;
+  font-family: "Marker Felt", fantasy, serif;
+  
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.grid {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  align-content: center;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
 
 .App-header {
   background-color: #282c34;
